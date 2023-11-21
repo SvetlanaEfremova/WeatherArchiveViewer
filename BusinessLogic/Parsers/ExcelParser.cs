@@ -12,9 +12,20 @@ namespace BusinessLogic.Parsers
 {
     public class ExcelParser
     {
-        public static List<Weather> ParseWeatherData(string filePath)
+        public List<Weather> ParseWeatherData (List<string> fileNames)
         {
-            var weathers = new List<Weather>();
+            var weatherData = new List<Weather>();
+            foreach (var fileName in fileNames)
+            {
+                var weatherDataFromFile = ParseWeatherDataFromFile (fileName);
+                weatherData.AddRange(weatherDataFromFile);
+            }
+            return weatherData;
+        }
+
+        public List<Weather> ParseWeatherDataFromFile(string filePath)
+        {
+            var weatherDataFromFile = new List<Weather>();
             IWorkbook workbook;
 
             using (var file = new FileStream(filePath, FileMode.Open, FileAccess.Read))
@@ -63,7 +74,7 @@ namespace BusinessLogic.Parsers
                                 ? (decimal)currentRow.GetCell(2).NumericCellValue : 0, 
 
                             Humidity = currentRow.GetCell(3) != null && currentRow.GetCell(3).CellType == CellType.Numeric
-                                ? (decimal)currentRow.GetCell(3).NumericCellValue : 0, 
+                                ? (int)currentRow.GetCell(3).NumericCellValue : 0, 
 
                             DewPoint = currentRow.GetCell(4) != null && currentRow.GetCell(4).CellType == CellType.Numeric
                                 ? (decimal)currentRow.GetCell(4).NumericCellValue : 0, 
@@ -89,11 +100,11 @@ namespace BusinessLogic.Parsers
                             WeatherEvents = currentRow.GetCell(11) != null && currentRow.GetCell(11).CellType == CellType.String
                                 ? currentRow.GetCell(11).StringCellValue : null
                         };
-                        weathers.Add(weather);
+                        weatherDataFromFile.Add(weather);
                     }
                 }
             }
-            return weathers;
+            return weatherDataFromFile;
         }
     }
 }

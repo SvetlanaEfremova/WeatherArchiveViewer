@@ -9,12 +9,16 @@ namespace Web.Controllers
 {
     public class WeatherController : Controller
     {
-        private readonly FileService fileService;
-        private readonly IWebHostEnvironment _environment;
-        public WeatherController(FileService fileService, IWebHostEnvironment environment)
+        private readonly WeatherService _weatherService;
+        public WeatherController(WeatherService weatherService)
         {
-            this.fileService = fileService;
-            _environment = environment;
+            _weatherService = weatherService;
+        }
+
+        public async Task<IActionResult> ViewArchives()
+        {
+            var weatherData = await _weatherService.GetWeatherData();
+            return View(weatherData);
         }
 
         public IActionResult Add()
@@ -26,11 +30,7 @@ namespace Web.Controllers
         public async Task<IActionResult> UploadFiles(List<IFormFile> files)
         {
             var fileDtos = FileUploadDtoConverter.ConvertFormFileListToDto(files);
-            await fileService.UploadFiles(fileDtos);
-            //обновление базы данных
-            string uploadsFolder = Path.Combine(_environment.ContentRootPath, "uploads");
-            string filePath = Path.Combine(uploadsFolder, "moskva_2010.xlsx");
-            ExcelParser.ParseWeatherData(filePath);
+            await _weatherService.AddNewData(fileDtos);
             return Json(new { message = "The files were uploaded" });
         }
     }

@@ -9,8 +9,9 @@ namespace BusinessLogic.Services
 {
     public class FileService
     {
-        public async Task UploadFiles(List<FileUploadDto> files)
+        public async Task<List<string>> UploadFiles(List<FileUploadDto> files)
         {
+            var uploadedFileNames = new List<string>();
             var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
 
             if (!Directory.Exists(uploadPath))
@@ -28,8 +29,10 @@ namespace BusinessLogic.Services
                     {
                         await file.FileStream.CopyToAsync(stream);
                     }
+                    uploadedFileNames.Add(filePath);
                 }
             }
+            return uploadedFileNames;
         }
     }
 }

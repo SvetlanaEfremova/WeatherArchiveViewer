@@ -12,9 +12,8 @@ namespace Infrastructure.Models
         [Precision(3, 1)]
         public decimal Temperature { get; set; }
 
-        [Precision(4, 2)]
-        [Range(0.0, 100.0)]
-        public decimal Humidity { get; set; }
+        [Range(0, 100)]
+        public int Humidity { get; set; }
 
         [Precision(3, 1)]
         public decimal DewPoint { get; set; }

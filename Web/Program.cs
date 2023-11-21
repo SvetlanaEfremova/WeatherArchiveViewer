@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using Infrastructure;
 using BusinessLogic.Services;
+using BusinessLogic.Parsers;
+using Infrastructure;
+using Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,7 +14,11 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
+builder.Services.AddScoped<WeatherService>();
 builder.Services.AddScoped<FileService>();
+builder.Services.AddScoped<ExcelParser>();
+builder.Services.AddScoped<WeatherRepository>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

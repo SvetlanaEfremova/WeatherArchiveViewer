@@ -1,0 +1,45 @@
+﻿@model IEnumerable<Infrastructure.Models.Weather>
+
+@{
+    ViewBag.Title = "Weather Data";
+}
+
+<h2>Weather Data</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Date and Time</th>
+            <th>Temperature (°C)</th>
+            <th>Humidity (%)</th>
+            <th>Dew Point (°C)</th>
+            <th>Atmospheric Pressure</th>
+            <th>Wind Direction</th>
+            <th>Wind Velocity</th>
+            <th>Cloudiness (%)</th>
+            <th>Lower Cloud Limit</th>
+            <th>Horizontal Visibility</th>
+            <th>Weather Events</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Id</td>
+                <td>@item.DateAndTime.ToString("g")</td>
+                <td>@item.Temperature</td>
+                <td>@item.Humidity</td>
+                <td>@item.DewPoint</td>
+                <td>@item.AtmosphericPressure</td>
+                <td>@item.WindDirection</td>
+                <td>@item.WindVelocity</td>
+                <td>@item.Cloudiness</td>
+                <td>@item.LowerCloudLimit</td>
+                <td>@item.HorizontalVisibility</td>
+                <td>@item.WeatherEvents</td>
+            </tr>
+        }
+    </tbody>
+</table>
