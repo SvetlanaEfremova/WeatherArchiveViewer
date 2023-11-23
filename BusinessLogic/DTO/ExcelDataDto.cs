@@ -1,21 +1,21 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Infrastructure.Models
+namespace BusinessLogic.DTO
 {
-    public class Weather
+    public class ExcelDataDto
     {
-        public int Id { get; set; }
-
         public DateTime DateAndTime { get; set; }
 
-        [Precision(3, 1)]
         public decimal? Temperature { get; set; }
 
-        [Range(0, 100)]
         public int? Humidity { get; set; }
 
-        [Precision(3, 1)]
         public decimal? DewPoint { get; set; }
 
         public int? AtmosphericPressure { get; set; }
@@ -24,7 +24,6 @@ namespace Infrastructure.Models
 
         public int? WindVelocity { get; set; }
 
-        [Range(0, 100)]
         public int? Cloudiness { get; set; }
 
         public int? LowerCloudLimit { get; set; }

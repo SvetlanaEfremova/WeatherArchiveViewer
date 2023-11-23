@@ -22,9 +22,25 @@ namespace Infrastructure.Repositories
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task<List<Weather>> GetWeatherData()
+        public async Task<List<Weather>> GetWeatherData(int? month, int? year)
         {
-            return await _dbContext.WeatherData.ToListAsync();
+            var query = _dbContext.WeatherData.OrderBy(w => w.DateAndTime).AsQueryable();
+            if (month.HasValue)
+                query = FilterWeatherDataByMonth(query, month.Value);
+            if (year.HasValue)
+                query = FilterWeatherDataByYear(query, year.Value);
+            var weatherData = await query.ToListAsync();
+            return weatherData;
+        }
+
+        private IQueryable<Weather> FilterWeatherDataByMonth(IQueryable<Weather> query, int month)
+        {
+            return query.Where(w => w.DateAndTime.Month == month);
+        }
+
+        private IQueryable<Weather> FilterWeatherDataByYear(IQueryable<Weather> query, int year)
+        {
+            return query.Where(w => w.DateAndTime.Year == year);
         }
     }
 }

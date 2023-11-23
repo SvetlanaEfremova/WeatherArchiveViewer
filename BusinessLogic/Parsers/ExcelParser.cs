@@ -4,7 +4,9 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BusinessLogic.DTO;
 using Infrastructure.Models;
+using Microsoft.VisualBasic;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 
@@ -12,99 +14,124 @@ namespace BusinessLogic.Parsers
 {
     public class ExcelParser
     {
-        public List<Weather> ParseWeatherData (List<string> fileNames)
+        public List<ExcelDataDto> ParseWeatherDataFromFiles (List<string> fileNames)
         {
-            var weatherData = new List<Weather>();
+            var excelDataFromFiles = new List<ExcelDataDto>();
             foreach (var fileName in fileNames)
             {
-                var weatherDataFromFile = ParseWeatherDataFromFile (fileName);
-                weatherData.AddRange(weatherDataFromFile);
+                var excelDataFromFile = ParseWeatherDataFromFile(fileName);
+                excelDataFromFiles.AddRange(excelDataFromFile);
             }
-            return weatherData;
+            return excelDataFromFiles;
         }
 
-        public List<Weather> ParseWeatherDataFromFile(string filePath)
+        public List<ExcelDataDto> ParseWeatherDataFromFile(string filePath)
         {
-            var weatherDataFromFile = new List<Weather>();
             IWorkbook workbook;
-
             using (var file = new FileStream(filePath, FileMode.Open, FileAccess.Read))
             {
                 workbook = new XSSFWorkbook(file);
             }
+            return GetDataFromWorkbook(workbook);
+        }
 
+        private List<ExcelDataDto> GetDataFromWorkbook(IWorkbook workbook)
+        {
+            var excelDataFromWorkbook = new List<ExcelDataDto>();
             for (int sheetIndex = 0; sheetIndex < workbook.NumberOfSheets; sheetIndex++)
             {
                 ISheet sheet = workbook.GetSheetAt(sheetIndex);
-                for (int row = 4; row <= sheet.LastRowNum; row++)
+                AddDataFromSheet(sheet, excelDataFromWorkbook);
+            }
+            return excelDataFromWorkbook;
+        }
+
+        private void AddDataFromSheet(ISheet sheet, List<ExcelDataDto> excelDataFromFile)
+        {
+            for (int rowNum = 4; rowNum <= sheet.LastRowNum; rowNum++)
+            {
+                IRow currentRow = sheet.GetRow(rowNum);
+                if (currentRow != null)
                 {
-                    IRow currentRow = sheet.GetRow(row);
-
-                    if (currentRow != null)
-                    {
-                        DateTime dateValue = DateTime.MinValue; 
-                        DateTime timeValue = DateTime.MinValue;
-
-                        if (currentRow.GetCell(0).CellType == CellType.Numeric && DateUtil.IsCellDateFormatted(currentRow.GetCell(0)))
-                        {
-                            dateValue = currentRow.GetCell(0).DateCellValue;
-                        }
-                        else if (currentRow.GetCell(0).CellType == CellType.String)
-                        {
-                            string dateString = currentRow.GetCell(0).StringCellValue;
-                            DateTime.TryParseExact(dateString, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out dateValue);
-                        }
-
-                        if (currentRow.GetCell(1).CellType == CellType.Numeric && DateUtil.IsCellDateFormatted(currentRow.GetCell(1)))
-                        {
-                            timeValue = currentRow.GetCell(1).DateCellValue;
-                        }
-                        else if (currentRow.GetCell(1).CellType == CellType.String)
-                        {
-                            string timeString = currentRow.GetCell(1).StringCellValue;
-                            DateTime.TryParseExact(timeString, "HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out timeValue);
-                        }
-
-                        var weather = new Weather
-                        {
-                            DateAndTime = new DateTime(dateValue.Year, dateValue.Month, dateValue.Day,
-                                             timeValue.Hour, timeValue.Minute, timeValue.Second),
-
-                            Temperature = currentRow.GetCell(2) != null && currentRow.GetCell(2).CellType == CellType.Numeric
-                                ? (decimal)currentRow.GetCell(2).NumericCellValue : 0, 
-
-                            Humidity = currentRow.GetCell(3) != null && currentRow.GetCell(3).CellType == CellType.Numeric
-                                ? (int)currentRow.GetCell(3).NumericCellValue : 0, 
-
-                            DewPoint = currentRow.GetCell(4) != null && currentRow.GetCell(4).CellType == CellType.Numeric
-                                ? (decimal)currentRow.GetCell(4).NumericCellValue : 0, 
-
-                            AtmosphericPressure = currentRow.GetCell(5) != null && currentRow.GetCell(5).CellType == CellType.Numeric
-                                ? (int)currentRow.GetCell(5).NumericCellValue : 0, 
-
-                            WindDirection = currentRow.GetCell(6) != null && currentRow.GetCell(6).CellType == CellType.String
-                                ? currentRow.GetCell(6).StringCellValue : null,
-
-                            WindVelocity = currentRow.GetCell(7) != null && currentRow.GetCell(7).CellType == CellType.Numeric
-                                ? (int?)currentRow.GetCell(7).NumericCellValue : null,
-
-                            Cloudiness = currentRow.GetCell(8) != null && currentRow.GetCell(8).CellType == CellType.Numeric
-                                ? (int?)currentRow.GetCell(8).NumericCellValue : null,
-
-                            LowerCloudLimit = currentRow.GetCell(9) != null && currentRow.GetCell(9).CellType == CellType.Numeric
-                                ? (int)currentRow.GetCell(9).NumericCellValue : 0, 
-
-                            HorizontalVisibility = currentRow.GetCell(10) != null && currentRow.GetCell(10).CellType == CellType.Numeric
-                                ? (int?)currentRow.GetCell(10).NumericCellValue : null,
-
-                            WeatherEvents = currentRow.GetCell(11) != null && currentRow.GetCell(11).CellType == CellType.String
-                                ? currentRow.GetCell(11).StringCellValue : null
-                        };
-                        weatherDataFromFile.Add(weather);
-                    }
+                    var excelDataFromRow = GetDataFromRow(currentRow);
+                    if (excelDataFromRow != null)
+                        excelDataFromFile.Add(excelDataFromRow);
                 }
             }
-            return weatherDataFromFile;
+        }
+
+        private ExcelDataDto GetDataFromRow(IRow row)
+        {
+            ICell dateCell = row.GetCell(0);
+            ICell timeCell = row.GetCell(1);
+            if (!TryParseDateTime(dateCell, timeCell, out DateTime dateTime))
+                return null;
+            return new ExcelDataDto
+            {
+                DateAndTime = dateTime,
+                Temperature = GetDecimalCellValue(row.GetCell(2)),
+                Humidity = GetIntCellValue(row.GetCell(3)),
+                DewPoint = GetDecimalCellValue(row.GetCell(4)),
+                AtmosphericPressure = GetIntCellValue(row.GetCell(5)),
+                WindDirection = GetStringCellValue(row.GetCell(6)),
+                WindVelocity = GetIntCellValue(row.GetCell(7)),
+                Cloudiness = GetIntCellValue(row.GetCell(8)),
+                LowerCloudLimit = GetIntCellValue(row.GetCell(9)),
+                HorizontalVisibility = GetIntCellValue(row.GetCell(10)),
+                WeatherEvents = GetStringCellValue(row.GetCell(11)),
+            };
+        }
+
+        private bool TryParseDateTime(ICell dateCell, ICell timeCell, out DateTime dateTime)
+        {
+            if (!TryParseDateCell(dateCell, out DateTime date) || !TryParseTimeCell(timeCell, out TimeSpan time))
+            {
+                dateTime = default;
+                return false;
+            }
+            dateTime = date.Date.Add(time);
+            return true;
+        }
+
+        private bool TryParseDateCell(ICell cell, out DateTime date)
+        {
+            if (cell.CellType == CellType.Numeric && DateUtil.IsCellDateFormatted(cell))
+            {
+                date = cell.DateCellValue;
+                return true;
+            }
+            else if (cell.CellType == CellType.String)
+                return DateTime.TryParseExact(cell.StringCellValue, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out date);
+            date = default;
+            return false;
+        }
+
+        private bool TryParseTimeCell(ICell cell, out TimeSpan time)
+        {
+            if (cell.CellType == CellType.Numeric && DateUtil.IsCellDateFormatted(cell))
+            {
+                time = cell.DateCellValue.TimeOfDay;
+                return true;
+            }
+            else if (cell.CellType == CellType.String)
+                return TimeSpan.TryParseExact(cell.StringCellValue, "HH:mm", CultureInfo.InvariantCulture, out time);
+            time = default;
+            return false;
+        }
+
+        private decimal? GetDecimalCellValue(ICell cell)
+        {
+            return cell != null && cell.CellType == CellType.Numeric ? (decimal)cell.NumericCellValue : null;
+        }
+
+        private int? GetIntCellValue(ICell cell)
+        {
+            return cell != null && cell.CellType == CellType.Numeric ? (int)cell.NumericCellValue : null;
+        }
+
+        private string? GetStringCellValue(ICell cell)
+        {
+            return cell != null && cell.CellType == CellType.String ? cell.StringCellValue : null;
         }
     }
 }

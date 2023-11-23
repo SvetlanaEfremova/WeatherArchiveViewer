@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using BusinessLogic.DTO;
 using Web.Converters;
 using BusinessLogic.Parsers;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using Web.ViewModels;
 
 namespace Web.Controllers
 {
@@ -15,10 +17,22 @@ namespace Web.Controllers
             _weatherService = weatherService;
         }
 
-        public async Task<IActionResult> ViewArchives()
+        public async Task<IActionResult> ViewArchives(int? month, int? year, int page = 1, int pageSize = 10)
         {
-            var weatherData = await _weatherService.GetWeatherData();
-            return View(weatherData);
+            var weatherData = await _weatherService.GetWeatherData(month, year);
+
+            var count = weatherData.Count();
+            var items = weatherData.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+            WeatherViewModel viewModel = new WeatherViewModel
+            {
+                WeatherData = items,
+                CurrentPage = page,
+                TotalPages = (int)Math.Ceiling(count / (double)pageSize),
+                PageSize = pageSize,
+            };
+
+            return View(viewModel);
         }
 
         public IActionResult Add()
