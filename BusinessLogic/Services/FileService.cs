@@ -28,7 +28,7 @@ namespace BusinessLogic.Services
                 {
                     var upladedFileName = await UploadFile(file, uploadPath);
                     if (!string.IsNullOrEmpty(upladedFileName))
-                        uploadedFileNames.Add(file.FileName);
+                        uploadedFileNames.Add(upladedFileName);
                 }
                 catch (Exception ex)
                 {
