@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using BusinessLogic.DTO;
 using Infrastructure.Models;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualBasic;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
@@ -14,13 +15,27 @@ namespace BusinessLogic.Parsers
 {
     public class ExcelParser
     {
+        private readonly ILogger<ExcelParser> _logger;
+
+        public ExcelParser(ILogger<ExcelParser> logger) 
+        {
+            _logger = logger;
+        }
+
         public List<ExcelDataDto> ParseWeatherDataFromFiles (List<string> fileNames)
         {
             var excelDataFromFiles = new List<ExcelDataDto>();
             foreach (var fileName in fileNames)
             {
-                var excelDataFromFile = ParseWeatherDataFromFile(fileName);
-                excelDataFromFiles.AddRange(excelDataFromFile);
+                try
+                {
+                    var excelDataFromFile = ParseWeatherDataFromFile(fileName);
+                    excelDataFromFiles.AddRange(excelDataFromFile);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error occurred while parsing excel file: {fileName}", fileName);
+                }
             }
             return excelDataFromFiles;
         }
@@ -48,7 +63,7 @@ namespace BusinessLogic.Parsers
 
         private void AddDataFromSheet(ISheet sheet, List<ExcelDataDto> excelDataFromFile)
         {
-            for (int rowNum = 4; rowNum <= sheet.LastRowNum; rowNum++)
+            for (int rowNum = 0; rowNum <= sheet.LastRowNum; rowNum++)
             {
                 IRow currentRow = sheet.GetRow(rowNum);
                 if (currentRow != null)
@@ -81,15 +96,15 @@ namespace BusinessLogic.Parsers
                 WeatherEvents = GetStringCellValue(row.GetCell(11)),
             };
         }
-
+        
         private bool TryParseDateTime(ICell dateCell, ICell timeCell, out DateTime dateTime)
         {
-            if (!TryParseDateCell(dateCell, out DateTime date) || !TryParseTimeCell(timeCell, out TimeSpan time))
+            if (!TryParseDateCell(dateCell, out DateTime date) || !TryParseTimeCell(timeCell, out DateTime time))
             {
                 dateTime = default;
                 return false;
             }
-            dateTime = date.Date.Add(time);
+            dateTime = date.Date.Add(time.TimeOfDay);
             return true;
         }
 
@@ -106,19 +121,19 @@ namespace BusinessLogic.Parsers
             return false;
         }
 
-        private bool TryParseTimeCell(ICell cell, out TimeSpan time)
+        private bool TryParseTimeCell(ICell cell, out DateTime time)
         {
             if (cell.CellType == CellType.Numeric && DateUtil.IsCellDateFormatted(cell))
             {
-                time = cell.DateCellValue.TimeOfDay;
+                time = cell.DateCellValue;
                 return true;
             }
             else if (cell.CellType == CellType.String)
-                return TimeSpan.TryParseExact(cell.StringCellValue, "HH:mm", CultureInfo.InvariantCulture, out time);
+                return DateTime.TryParseExact(cell.StringCellValue, "HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out time);
             time = default;
             return false;
         }
-
+        
         private decimal? GetDecimalCellValue(ICell cell)
         {
             return cell != null && cell.CellType == CellType.Numeric ? (decimal)cell.NumericCellValue : null;

@@ -9,13 +9,11 @@ namespace Infrastructure.Models
 
         public DateTime DateAndTime { get; set; }
 
-        [Precision(3, 1)]
         public decimal? Temperature { get; set; }
 
         [Range(0, 100)]
         public int? Humidity { get; set; }
 
-        [Precision(3, 1)]
         public decimal? DewPoint { get; set; }
 
         public int? AtmosphericPressure { get; set; }

@@ -16,3 +16,21 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+.form-inline {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    margin-bottom: 10px;
+}
+
+    .form-inline label {
+        margin-right: 5px;
+        white-space: nowrap;
+    }
+
+    .form-inline .form-control {
+        flex: 1;
+        margin-right: 10px;
+        max-width: 140px;
+    }

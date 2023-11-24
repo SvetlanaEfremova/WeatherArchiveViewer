@@ -2,6 +2,7 @@
 using BusinessLogic.Parsers;
 using Infrastructure.Models;
 using Infrastructure.Repositories;
+using NPOI.POIFS.Storage;
 using NPOI.SS.Formula.Functions;
 using System;
 
@@ -35,6 +36,11 @@ namespace BusinessLogic.Services
             return await _weatherRepository.GetWeatherData(month, year);
         }
 
+        public async Task<List<int>> GetAvailableYears()
+        {
+            return await _weatherRepository.GetAvailableYears();
+        }
+
         private List<Weather> ConvertExcelDataToWeatherData(List<ExcelDataDto> excelData)
         {
             var weatherData = new List<Weather>();
@@ -49,12 +55,6 @@ namespace BusinessLogic.Services
 
         private Weather ConvertExcelToWeather(ExcelDataDto excelDto)
         {
-            /*
-            var dateValue = excelDto.Date;
-            var timeValue = excelDto.Time;
-            DateTime dateAndTime = new DateTime(dateValue.Year, dateValue.Month, dateValue.Day,
-                                             timeValue.Hour, timeValue.Minute, timeValue.Second);
-            */
             return new Weather
             {
                 DateAndTime = excelDto.DateAndTime,

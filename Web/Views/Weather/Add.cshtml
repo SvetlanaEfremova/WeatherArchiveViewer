@@ -1,40 +1,27 @@
 ﻿<form id="uploadForm">
-       <div class="mb-3">
-           <label for="formFileMultiple" class="form-label">Select excel files to add to the archive:</label>
+    <div class="mb-2" style="max-width:500px;">
+        <label for="formFileMultiple" class="form-label">Select excel files to add to the archive:</label>
         <input class="form-control" type="file" id="formFileMultiple" name="files" multiple accept=".xlsx">
     </div>
     <button type="submit" class="btn btn-primary">Upload</button>
 </form>
-
-<script>
-    document.getElementById('uploadForm').addEventListener('submit', function (e) {
-        e.preventDefault();
-
-        var files = document.getElementById('formFileMultiple').files;
-
-        if (files.length === 0 || Array.from(files).some(file => !file.name.endsWith('.xlsx'))) {
-            alert("Please select .xlsx files");
-            return;
-        }
-
-        if (files.length === 0) {
-            alert("No files selected");
-            return;
-        }
-
-        var formData = new FormData(this);
-
-        fetch(window.location.origin + '/Weather/UploadFiles', {
-            method: 'POST',
-            body: formData
-        })
-            .then(response => response.json())
-            .then(data => {
-                alert(data.message);
-            })
-            .catch(error => {
-                console.error('Error occured while uploading files:', error);
-            });
-    });
-
-</script>
+<h5>
+    In order to parse weather data succesfully, rows in excel files must have cells with the following data:
+</h5>
+<ul class="list-group" style="max-width:500px;">
+    <li class="list-group-item"><strong>Date  - necessary</strong></li>
+    <li class ="list-group-item"><strong>Time - necessary</strong></li>
+    <li class="list-group-item">Temperature (in °C)</li>
+    <li class="list-group-item">Humidity (in %)</li>
+    <li class="list-group-item">Dew point (in °C)</li>
+    <li class="list-group-item">Atmospheric pressure (in mmHg)</li>
+    <li class="list-group-item">Wind direction</li>
+    <li class="list-group-item">Wind velocity (in m/s)</li>
+    <li class="list-group-item">Cloudiness (in %)</li>
+    <li class="list-group-item">Lower cloud limit (in m)</li>
+    <li class="list-group-item">Horizontal visibility (in km)</li>
+    <li class="list-group-item">Weather events</li>
+</ul>
+<br>
+<a href="@Url.Action("ViewArchives", "Weather")" class="btn btn-info">View archives</a>
+<script src="~/js/Add.js"></script>
