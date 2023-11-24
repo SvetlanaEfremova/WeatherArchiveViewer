@@ -2,7 +2,7 @@ An ASP.NET MVC application designed for adding and viewing weather data.
 
 To launch the application, you need to install .NET SDK version 6.0 or higher and MSSQL Server 2019.
 
-###Launching the application via Visual Studio:
+### Launching the application via Visual Studio:
 
 - Open Visual Studio.
 - In the "File" menu, select "Open" -> "Project/Solution" or press Ctrl+Shift+O.
@@ -13,7 +13,7 @@ To launch the application, you need to install .NET SDK version 6.0 or higher an
   - **Update-Database -Project Infrastructure**
 - To launch the project, press the "Start Without Debugging" button or Ctrl+F5.
 
-###Launching the application using the command line:
+### Launching the application using the command line:
 - Open the command line.
 - Execute the commands:
   - **cd path/to/solution/folder**, where the solution file is "Weather_data_archive_viewer.sln".
